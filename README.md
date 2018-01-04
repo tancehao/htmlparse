@@ -27,7 +27,8 @@ go get -u github.com/tancehao/htmlparse
 ```go
 func main() {
     content, _ := ioutil.ReadFile("baidu.html")
-	tree, err := htmlparse.NewParser(content)
+	parser := htmlparse.NewParser(content)
+	tree, err := parser.Parse()
 	if err != nil {
 	    log.Fatal(err)
 	}
