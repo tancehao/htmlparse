@@ -125,6 +125,10 @@ func (t *Tag) GetContent() []byte {
 	return t.segment.getContent()
 }
 
+func (t *Tag)String() string {
+    return string(t.GetContent())
+}
+
 func (t *Tag)AddChild(s *Segment) {
     t.children = append(t.children, s)
 }
@@ -197,6 +201,24 @@ func (t *TagSets)One() *Tag {
 	    return nil
 	}
 	return t.tags[0]
+}
+
+func (t *TagSets)GetAttributes(attr string) []string {
+	attrs := []string{}
+	for _, tag := range t.tags {
+		if v, ok := tag.Attributes[attr]; ok {
+		    attrs = append(attrs, v)
+		}
+	}
+	return attrs
+}
+
+func (t *TagSets)String() string {
+	s := ""
+	for _, t := range t.tags {
+	    s += t.String()
+	}
+	return s
 }
 
 type Text struct {
