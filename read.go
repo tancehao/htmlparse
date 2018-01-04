@@ -1,19 +1,9 @@
 package htmlparse
 
 import (
-	"errors"
+	"strings"
+	"fmt"
 )
-
-var (
-	TagNotExist         = errors.New("tag not exist")
-	SelectorSyntaxError = errors.New("the css style selector has syntax error")
-    NotContentError = errors.New("the content to be linked is not linkable")
-)
-
-type Tree struct {
-	data []byte
-	root *Tag
-}
 
 func (t *Tree)Filter(filter map[string]string) []*Tag {
 	tags := []*Tag{t.root}
@@ -25,17 +15,10 @@ func (t *Tree)Find(attr, value string) *TagSets {
 	return t.root.Find(attr, value)
 }
 
-//a general model of a tag or text, which can be found with its absolute position
-//a comment is treated as a text as well
-type Segment struct {
-	IsText bool
-	IsTag  bool
-	tree   *Tree
-	Parent *Tag
-	tag    *Tag
-	text   *Text
-	offset int64 //在父元素内的起始位置
-	limit  int64 //在父元素内的结束位置
+//convert a tree to string
+//it returns the modified document
+func (t *Tree)String() string {
+    return t.root.String()
 }
 
 //get the actual bytes of a segment
@@ -43,49 +26,17 @@ func (s *Segment)getContent() []byte {
 	if s == nil {
 		return nil
 	}
-	if s.Parent == nil { //根元素
+	if s.Parent == nil { //root tag
 		return s.tree.data
 	}
 	return s.tree.data[s.offset:s.limit]
-}
-
-//link an abstacted segment to a concrete tag which has many useful infos
-func (s *Segment)LinkToTag(t *Tag, offset, n int64) {
-	s.IsText = false
-	s.IsTag = true
-	s.text = nil
-	s.tag = t
-	s.offset = offset
-	s.limit = offset + n
-	t.segment = s
-}
-
-//link an abstact segment to a concrete text
-func (s *Segment)LinkToText(t *Text, offset, n int64) {
-	s.IsText = true
-	s.IsTag = false
-	s.text = t
-	s.tag = nil
-	s.offset = offset
-	s.limit = offset + n
-	t.segment = s
-}
-
-//an abstact of a html tag
-type Tag struct {
-	TagName    string
-	Attributes map[string]string
-	Class      map[string]bool
-	NoEnd      bool //没有关闭标签？
-	children   []*Segment
-	segment    *Segment
 }
 
 //filter a tag sets to another with conditions
 func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
 	result := []*Tag{}
 	for _, tag := range originTags {
-		if len(tag.children) > 0 { //有下级标签，递归地查询
+		if len(tag.children) > 0 { //if a tag has children, process them recursively
 			subTags := []*Tag{}
 			if tag.checkByFilter(filter) {
 			    result = append(result, tag)
@@ -125,12 +76,22 @@ func (t *Tag) GetContent() []byte {
 	return t.segment.getContent()
 }
 
+//return the modified data of a tag
 func (t *Tag)String() string {
-    return string(t.GetContent())
-}
-
-func (t *Tag)AddChild(s *Segment) {
-    t.children = append(t.children, s)
+	attrs := []string{}
+	for k, v := range t.Attributes {
+	    attrs = append(attrs, fmt.Fprintf("%s='%s'", k, v))
+	}
+	str := fmt.Fprintf("<%s %s>", t.TagName, strings.Join(attrs, " ")
+	for seg := range t.root.children {
+	    if seg.IsText {
+		    str += seg.text.String()
+		} else {
+		    str += seg.tag.String()
+		}
+	}
+	str += fmt.Fprintf("</%s>", t.TagName)
+	return str
 }
 
 func (t *Tag)checkByFilter(filter map[string]string) bool {
@@ -170,14 +131,6 @@ func (t *Tag)Extract() []byte {
 	}
 	leng := len(t.children)
 	return t.segment.tree.data[t.children[0].offset:t.children[leng-1].limit]
-}
-
-func (t *Tag)SetLimit(n int64) {
-	t.segment.limit = n
-}
-
-type TagSets struct {
-    tags []*Tag
 }
 
 //filter a tags set to another one, it can be used with a chain style
@@ -221,8 +174,6 @@ func (t *TagSets)String() string {
 	return s
 }
 
-type Text struct {
-	text    []byte
-	segment *Segment
+func (t *Text)String() {
+    return string(t.text)
 }
-

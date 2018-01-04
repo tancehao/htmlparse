@@ -3,7 +3,7 @@ htmlparse
 
 Htmlparse is a go tool for parsing a html document into a tree.
 
-The basic structure of this package is the struct Tag. Given a tag, you can easily do these things:
+The basic structure of this package is the Tag struct. Given a tag, you can easily do these things:
 
 * Get its attributes.
 * Extract its text contents as fast as possible.
@@ -30,7 +30,7 @@ func main() {
 	parser := htmlparse.NewParser(content)
 	tree, err := parser.Parse()
 	if err != nil {
-	    log.Fatal(err)
+		log.Fatal(err)
 	}
 	
 	//find some tags with a filter
@@ -44,7 +44,7 @@ func main() {
 }
 ```
 
-this codes above prints:
+the codes above prints:
 ```go
 <input type=hidden name=bdorz_come value=1> 
 <input type=hidden name=ie value=utf-8> 
@@ -56,16 +56,16 @@ this codes above prints:
 
 Or you can use a chain:
 ```go
-    imgTags := tree.Find("id", "product-container").Find("class", "product").Find("tagName", "img").Find("class", "product_photo")
-    photos := imgTags.GetAttributes("src")
+	imgTags := tree.Find("id", "products").Find("class", "product").Find("tagName", "img").Find("class", "product_photo")
+	photos := imgTags.GetAttributes("src")
 	fmt.Println(photos)
 ```
 
 Prints:
 ```go
-//img13.360buyimg.com/n5/s54x54_jfs/t10675/253/1344769770/66891/92d54ca4/59df2e7fN86c99a27.jpg
-//img13.360buyimg.com/n5/s54x54_jfs/t10408/221/1296471743/54709/b8bf69a6/59df2e82N1f855465.jpg
-//img13.360buyimg.com/n5/s54x54_jfs/t10438/209/1299858339/22067/94f4941f/59df2e82N11980eca.jpg
-//img13.360buyimg.com/n5/s54x54_jfs/t10357/189/1296983301/32053/a0e9283e/59df2e82N3e8f5183.jpg
-//img13.360buyimg.com/n5/s54x54_jfs/t10450/186/1312686657/70920/1167f96b/59df2e83Nc6f15397.jpg
+img13.360buyimg.com/n5/s54x54_jfs/t10675/253/1344769770/66891/92d54ca4/59df2e7fN86c99a27.jpg
+img13.360buyimg.com/n5/s54x54_jfs/t10408/221/1296471743/54709/b8bf69a6/59df2e82N1f855465.jpg
+img13.360buyimg.com/n5/s54x54_jfs/t10438/209/1299858339/22067/94f4941f/59df2e82N11980eca.jpg
+img13.360buyimg.com/n5/s54x54_jfs/t10357/189/1296983301/32053/a0e9283e/59df2e82N3e8f5183.jpg
+img13.360buyimg.com/n5/s54x54_jfs/t10450/186/1312686657/70920/1167f96b/59df2e83Nc6f15397.jpg
 ```
