@@ -42,6 +42,7 @@ func main() {
 	}
 }
 ```
+
 this codes above prints:
 ```go
 <input type=hidden name=bdorz_come value=1> 
@@ -50,7 +51,7 @@ this codes above prints:
 <input type=hidden name=rsv_bp value=1> 
 <input type=hidden name=rsv_idx value=1> 
 <input type=hidden name=tn value=baidu>
-```go
+```
 
 Or you can use a chain:
 ```go
@@ -58,6 +59,7 @@ Or you can use a chain:
     photos := imgTags.GetAttributes("src")
 	fmt.Println(photos)
 ```
+
 Prints:
 ```go
 //img13.360buyimg.com/n5/s54x54_jfs/t10675/253/1344769770/66891/92d54ca4/59df2e7fN86c99a27.jpg
