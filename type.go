@@ -80,3 +80,22 @@ func (t *Tag)SetLimit(n int64) {
 	t.segment.limit = n
 }
 
+//create a new text. It is used when write data to a tag
+func newText(parent *Tag, data []byte) *Text {
+	segment := &Segment{
+		IsText: true,
+		IsTag:  false,
+		tag:    nil,
+		text:   nil,
+		tree:   parent.segment.tree,
+		Parent: parent,
+		offset: 0,
+		limit: 0,
+	}
+	text := &Text{
+	    data: data,
+	    segment: segment,
+	}
+	segment.text = text
+	return text
+}

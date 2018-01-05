@@ -76,25 +76,13 @@ func (t *Tag) GetContent() []byte {
 	return t.segment.getContent()
 }
 
-//return the modified data of a tag
+//if only returns the original data
+//one should call Modify() to get the modified data
 func (t *Tag)String() string {
-	attrs := []string{}
-	for k, v := range t.Attributes {
-	    attrs = append(attrs, fmt.Fprintf("%s=\"%s\"", k, v))
+	if t == nil {
+	    return ""
 	}
-	str := fmt.Fprintf("<%s %s>", t.TagName, strings.Join(attrs, " ")
-	if t.NoEnd {
-	    return str
-	}
-	for seg := range t.children {
-	    if seg.IsText {
-		    str += seg.text.String()
-		} else {
-		    str += seg.tag.String()
-		}
-	}
-	str += fmt.Fprintf("</%s>", t.TagName)
-	return str
+	return string(t.GetContent())
 }
 
 func (t *Tag)checkByFilter(filter map[string]string) bool {
@@ -177,6 +165,9 @@ func (t *TagSets)String() string {
 	return s
 }
 
-func (t *Text)String() {
-    return string(t.text)
+func (t *Text)String() string {
+	if t == nil {
+	    return ""
+	}
+    return string(t.segment.getContent())
 }
