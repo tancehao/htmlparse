@@ -80,10 +80,13 @@ func (t *Tag) GetContent() []byte {
 func (t *Tag)String() string {
 	attrs := []string{}
 	for k, v := range t.Attributes {
-	    attrs = append(attrs, fmt.Fprintf("%s='%s'", k, v))
+	    attrs = append(attrs, fmt.Fprintf("%s=\"%s\"", k, v))
 	}
 	str := fmt.Fprintf("<%s %s>", t.TagName, strings.Join(attrs, " ")
-	for seg := range t.root.children {
+	if t.NoEnd {
+	    return str
+	}
+	for seg := range t.children {
 	    if seg.IsText {
 		    str += seg.text.String()
 		} else {
