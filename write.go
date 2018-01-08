@@ -7,6 +7,7 @@ import (
 
 var (
     NoSpaceToWrite = errors.New("single tag has no space to write in")
+    RootUndeletable = errors.New("can't delete the root tag")
 )
 
 //one should call this method to get 
@@ -37,8 +38,9 @@ func (t *Tag)Modify() string {
 }
 
 func (t *Text)Modify() string {
-    return string(t.data)
+    return string(t.Text)
 }
+
 
 func (t *Tag)Write(position int64, data []byte) (n, error) {
     if t.NoEnd {
@@ -53,4 +55,33 @@ func (t *Tag)WriteAfter(data []byte) (n, error) {}
 
 func (t *Tag)WriteBefore(data []byte) (n, error) {}
 
-func (t *Text)Write(position int64, data []byte) (n, error) {}
+//delete a tag. whether to delete its children is optional
+func (t *Tag)Delete(deleteChildren int) error {
+    if t.segment.tree.root == t {
+	    return RootUndeletable
+	}
+	switch deleteChildren {
+	case 1:
+        for i, seg := range t.segment.Parent.children {
+		    if seg == t.segment {
+			    t.segment.Parent.children = append(t.segment.Parent.children[:i], t.segment.Parent.children[i+1:]...)
+			}
+		}
+	case 0:
+		for i, seg := range t.children {
+		    seg.Parent = t.segment.Parent
+			t.segment.Parent.children = append(t.segment.Parent.children, seg)
+		}
+	}
+	return nil
+}
+
+//delete a text
+func (t *Text)Delete() error {
+    for i, seg := range t.segment.Parent.children {
+	    if seg == t.segment {
+		    t.segment.Parent.children = append(t.segment.Parent.children[:i], t.segment.Parent.children[i+1:]...)
+		}
+	}
+	return nil
+}

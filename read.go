@@ -5,6 +5,14 @@ import (
 	"fmt"
 )
 
+/*
+*
+******************************************************
+                  Tree's Methods
+******************************************************
+*
+*/
+
 func (t *Tree)Filter(filter map[string]string) []*Tag {
 	tags := []*Tag{t.root}
 	return FilterTags(tags, filter)
@@ -20,6 +28,13 @@ func (t *Tree)Find(attr, value string) *TagSets {
 func (t *Tree)String() string {
     return t.root.String()
 }
+
+/*
+*
+*******************************************************
+                  segment's Methods
+*******************************************************
+*/
 
 //get the actual bytes of a segment
 func (s *Segment)getContent() []byte {
@@ -60,6 +75,14 @@ func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
 	}
 	return result
 }
+
+/*
+*
+****************************************************
+                 Tag's Methods
+****************************************************
+*
+*/
 
 func (t *Tag)Find(attr, value string) *TagSets {
 	sets := &TagSets{
@@ -124,6 +147,14 @@ func (t *Tag)Extract() []byte {
 	return t.segment.tree.data[t.children[0].offset:t.children[leng-1].limit]
 }
 
+/*
+*
+****************************************************
+               TagSets's Methods
+****************************************************
+*
+*/
+
 //filter a tags set to another one, it can be used with a chain style
 //e.g. TagSets.Find("tagName", "form").Find("method", "post").Find("tagName", "input").Find("type", "text")
 func (t *TagSets)Find(attr, value string) *TagSets {
@@ -165,6 +196,14 @@ func (t *TagSets)String() string {
 	return s
 }
 
+
+/*
+*
+*************************************************
+                  Text's Methods
+*************************************************
+*
+*/
 func (t *Text)String() string {
 	if t == nil {
 	    return ""

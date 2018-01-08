@@ -46,7 +46,7 @@ type TagSets struct {
 }
 
 type Text struct {
-	text    []byte
+	Text    []byte
 	segment *Segment
 }
 
@@ -80,22 +80,39 @@ func (t *Tag)SetLimit(n int64) {
 	t.segment.limit = n
 }
 
-//create a new text. It is used when write data to a tag
-func newText(parent *Tag, data []byte) *Text {
-	segment := &Segment{
-		IsText: true,
-		IsTag:  false,
-		tag:    nil,
-		text:   nil,
-		tree:   parent.segment.tree,
-		Parent: parent,
-		offset: 0,
-		limit: 0,
+//add a child of type tag to a tag
+func (parent *Tag)AddChildTag(child *Tag, position int) *Tag {
+    if len(parent) == 0 {
+	    position = 0
 	}
-	text := &Text{
-	    data: data,
-	    segment: segment,
+	seg := &Segment{
+	    IsTag: true,
+		IsText: false,
+		tag: child,
+		text: nil,
+		parent: parent,
+		tree: parent.segment.tree,
 	}
-	segment.text = text
-	return text
+	child.segment = seg
+    parent.children = append(append(parent.children[:position], seg), parent.children[position:])
+    return parent
 }
+
+//add a child of type text to a tag
+func (parent *Tag)AddTextChild(child *Text, position int) *Tag {
+    if len(parent) == 0 {
+	    position = 0
+	}
+	seg := &Segment{
+	    IsTag: false,
+		IsText: true,
+		tag: nil,
+		text: child,
+		parent: parent,
+		tree: parent.segment.tree,
+	}
+	child.segment = seg
+    parent.children = append(append(parent.children[:position], seg), parent.children[position:])
+    return parent
+}
+
