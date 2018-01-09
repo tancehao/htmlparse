@@ -12,6 +12,7 @@ The basic structure of this package is the Tag struct. Given a tag, you can easi
 ---
 
 * [Install](#install)
+* [Api](#api)
 * [Examples](#examples)
 
 ---
@@ -21,6 +22,33 @@ The basic structure of this package is the Tag struct. Given a tag, you can easi
 ```sh
 go get -u github.com/tancehao/htmlparse
 ```
+
+## api
+### Tree
+* Filter(filter map[string]string) []*Tag
+* Find(attr, value string) *TagSets
+* String() string
+
+
+### Tag
+* Find(attr, value string) *TagSets
+* GetContent() []byte
+* String() string
+* Extract() []byte
+* checkByFilter(filter map[string]string) bool
+* checkByCondition(attr, value string) bool
+
+
+### TagSets
+* Find(attr, value string) *TagSets
+* All() []*Tag
+* One() *Tag
+* GetAttributes(attr string) []string
+* String() string
+
+
+### Text
+* String()
 
 ## Examples
 
