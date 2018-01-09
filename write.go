@@ -27,7 +27,7 @@ func (t *Tag)Modify() string {
 	    return str
 	}
 	for seg := range t.children {
-	    if seg.IsText {
+	    if seg.isText {
 		    str += seg.text.Modify()
 		} else {
 		    str += seg.tag.Modify()
@@ -62,15 +62,15 @@ func (t *Tag)Delete(deleteChildren int) error {
 	}
 	switch deleteChildren {
 	case 1:
-        for i, seg := range t.segment.Parent.children {
+        for i, seg := range t.segment.parent.children {
 		    if seg == t.segment {
-			    t.segment.Parent.children = append(t.segment.Parent.children[:i], t.segment.Parent.children[i+1:]...)
+			    t.segment.parent.children = append(t.segment.parent.children[:i], t.segment.parent.children[i+1:]...)
 			}
 		}
 	case 0:
 		for i, seg := range t.children {
-		    seg.Parent = t.segment.Parent
-			t.segment.Parent.children = append(t.segment.Parent.children, seg)
+		    seg.parent = t.segment.parent
+			t.segment.parent.children = append(t.segment.parent.children, seg)
 		}
 	}
 	return nil
@@ -78,9 +78,9 @@ func (t *Tag)Delete(deleteChildren int) error {
 
 //delete a text
 func (t *Text)Delete() error {
-    for i, seg := range t.segment.Parent.children {
+    for i, seg := range t.segment.parent.children {
 	    if seg == t.segment {
-		    t.segment.Parent.children = append(t.segment.Parent.children[:i], t.segment.Parent.children[i+1:]...)
+		    t.segment.parent.children = append(t.segment.parent.children[:i], t.segment.parent.children[i+1:]...)
 		}
 	}
 	return nil

@@ -45,9 +45,9 @@ func (p *Parser)Parse() (*Tree, error) {
 
 			//build relationship with its parent when it's not the root tag
 			if parent := p.getLastTag(); parent != nil {
-				seg := &Segment{
+				seg := &segment{
 				    tree: p.tree,
-					Parent: parent,
+					parent: parent,
 				}
 				seg.LinkToTag(tag, offset, n)
 				parent.AddChild(seg)
@@ -56,9 +56,9 @@ func (p *Parser)Parse() (*Tree, error) {
 					data: p.data,
 					root: tag,
 				}
-				seg := &Segment{
+				seg := &segment{
 					tree:   tree,
-					Parent: nil,
+					parent: nil,
 				}
 				p.tree = tree
 				seg.LinkToTag(tag, 0, int64(len(p.data)))
@@ -98,8 +98,8 @@ func (p *Parser)pushText(offset, n int64, text []byte) error {
 		Text: txt,
 	}
 	if parent := p.getLastTag(); parent != nil {
-		s := &Segment{
-		    Parent: parent,
+		s := &segment{
+		    parent: parent,
 			tree: p.tree,
 		}
 		s.LinkToText(t, offset, n)
@@ -117,7 +117,7 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 		TagName: string(tagName),
 	    Attributes: map[string]string{},
 	    Class: map[string]bool{},
-	    children: []*Segment{},
+	    children: []*segment{},
 	}
 
 	if IsSingleTag(string(tagName)) {

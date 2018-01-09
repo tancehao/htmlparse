@@ -5,6 +5,35 @@ import (
 	"fmt"
 )
 
+//filter a tag sets to another with conditions
+func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
+	result := []*Tag{}
+	for _, tag := range originTags {
+		if len(tag.children) > 0 { //if a tag has children, process them recursively
+			subTags := []*Tag{}
+			if tag.checkByFilter(filter) {
+			    result = append(result, tag)
+			}
+			for _, c := range tag.children {
+				if c.isTag {
+					subTags = append(subTags, c.tag)
+				}
+			}
+			if len(subTags) > 0 {
+				ts := FilterTags(subTags, filter)
+				for _, t := range ts {
+				    result = append(result, t)
+				}
+			}
+		} else {
+			if tag.checkByFilter(filter) {
+			    result = append(result, tag)
+			}
+		}
+	}
+	return result
+}
+
 /*
 *
 ******************************************************
@@ -37,43 +66,40 @@ func (t *Tree)String() string {
 */
 
 //get the actual bytes of a segment
-func (s *Segment)getContent() []byte {
+func (s *segment)getContent() []byte {
 	if s == nil {
 		return nil
 	}
-	if s.Parent == nil { //root tag
+	if s.parent == nil { //root tag
 		return s.tree.data
 	}
 	return s.tree.data[s.offset:s.limit]
 }
 
-//filter a tag sets to another with conditions
-func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
-	result := []*Tag{}
-	for _, tag := range originTags {
-		if len(tag.children) > 0 { //if a tag has children, process them recursively
-			subTags := []*Tag{}
-			if tag.checkByFilter(filter) {
-			    result = append(result, tag)
-			}
-			for _, c := range tag.children {
-				if c.IsTag {
-					subTags = append(subTags, c.tag)
-				}
-			}
-			if len(subTags) > 0 {
-				ts := FilterTags(subTags, filter)
-				for _, t := range ts {
-				    result = append(result, t)
-				}
-			}
-		} else {
-			if tag.checkByFilter(filter) {
-			    result = append(result, tag)
-			}
+//return the previous segment of a segment
+func (s *segment)prev() *segment {
+    if s == nil || s.parent == nil || len(s.parent.children) == 0 || s.parent.children[0] == s {
+	    return nil
+	}
+    for i, t: = range s.parent.children {
+	    if t == s {
+			return s.parent.children[i-1]
 		}
 	}
-	return result
+	return nil
+}
+
+//return the next segment of a segment
+func (s *segment)next() *segment {
+    if s == nil || s.parent == nil || len(s.parent.children) == 0 || s.parent.children[len(s.parent.children) - 1] == s {
+	    return nil
+	}
+    for i, t: = range s.parent.children {
+	    if t == s {
+			return s.parent.children[i+1]
+		}
+	}
+	return nil
 }
 
 /*
@@ -84,6 +110,7 @@ func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
 *
 */
 
+//find a set of tags wrapped within a tag with a condition
 func (t *Tag)Find(attr, value string) *TagSets {
 	sets := &TagSets{
 	    tags: []*Tag{t},
@@ -91,7 +118,7 @@ func (t *Tag)Find(attr, value string) *TagSets {
 	return sets.Find(attr, value)
 }
 
-//get the contents contained by a tag, except its tagname and attributes
+//get the contents contained by a tag, including its tagname and attributes
 func (t *Tag) GetContent() []byte {
 	if t == nil {
 		return nil
@@ -108,6 +135,26 @@ func (t *Tag)String() string {
 	return string(t.GetContent())
 }
 
+//return the original data wrapped within a tag
+func (t *Tag)Extract() []byte {
+	if len(t.children) == 0 || t.NoEnd {
+	    return []byte{}
+	}
+	leng := len(t.children)
+	return t.segment.tree.data[t.children[0].offset:t.children[leng-1].limit]
+}
+
+//return the previous tag of a tag
+func (t *Tag)Prev() *Tag {
+	for seg := t.segment.prev(); seg != nil; seg = seg.prev(){
+	    if seg.isTag == true {
+		    return seg.tag
+		}
+	}
+	return nil
+}
+
+//check whether a tag is what we want using a filter
 func (t *Tag)checkByFilter(filter map[string]string) bool {
     for k, v := range filter {
 	    if !t.checkByCondition(k, v) {
@@ -137,14 +184,6 @@ func (t *Tag)checkByCondition(attr, value string) bool {
 		}
 	}
 	return false
-}
-
-func (t *Tag)Extract() []byte {
-	if len(t.children) == 0 || t.NoEnd {
-	    return []byte{}
-	}
-	leng := len(t.children)
-	return t.segment.tree.data[t.children[0].offset:t.children[leng-1].limit]
 }
 
 /*

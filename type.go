@@ -17,13 +17,13 @@ type Tree struct {
 
 //a general model of a tag or text, which can be found with its absolute position
 //a comment is treated as a text as well
-type Segment struct {
-	IsText bool
-	IsTag  bool
+type segment struct {
+	isText bool
+	isTag  bool
 	tag    *Tag
 	text   *Text
 	tree   *Tree
-	Parent *Tag
+	parent *Tag
 
 	//offset and limit determins the absolute position 
 	//of a segment in the document
@@ -37,8 +37,8 @@ type Tag struct {
 	Attributes map[string]string
 	Class      map[string]bool
 	NoEnd      bool //whether it's a single tag
-	children   []*Segment
-	segment    *Segment
+	children   []*segment
+	segment    *segment
 }
 
 type TagSets struct {
@@ -47,13 +47,13 @@ type TagSets struct {
 
 type Text struct {
 	Text    []byte
-	segment *Segment
+	segment *segment
 }
 
 //link an abstacted segment to a concrete tag which has many useful infos
-func (s *Segment)LinkToTag(t *Tag, offset, n int64) {
-	s.IsText = false
-	s.IsTag = true
+func (s *segment)LinkToTag(t *Tag, offset, n int64) {
+	s.isText = false
+	s.isTag = true
 	s.text = nil
 	s.tag = t
 	s.offset = offset
@@ -62,9 +62,9 @@ func (s *Segment)LinkToTag(t *Tag, offset, n int64) {
 }
 
 //link an abstact segment to a concrete text
-func (s *Segment)LinkToText(t *Text, offset, n int64) {
-	s.IsText = true
-	s.IsTag = false
+func (s *segment)LinkToText(t *Text, offset, n int64) {
+	s.isText = true
+	s.isTag = false
 	s.text = t
 	s.tag = nil
 	s.offset = offset
@@ -72,7 +72,7 @@ func (s *Segment)LinkToText(t *Text, offset, n int64) {
 	t.segment = s
 }
 
-func (t *Tag)AddChild(s *Segment) {
+func (t *Tag)AddChild(s *segment) {
     t.children = append(t.children, s)
 }
 
@@ -85,9 +85,9 @@ func (parent *Tag)AddChildTag(child *Tag, position int) *Tag {
     if len(parent) == 0 {
 	    position = 0
 	}
-	seg := &Segment{
-	    IsTag: true,
-		IsText: false,
+	seg := &segment{
+	    isTag: true,
+		isText: false,
 		tag: child,
 		text: nil,
 		parent: parent,
@@ -103,9 +103,9 @@ func (parent *Tag)AddTextChild(child *Text, position int) *Tag {
     if len(parent) == 0 {
 	    position = 0
 	}
-	seg := &Segment{
-	    IsTag: false,
-		IsText: true,
+	seg := &segment{
+	    isTag: false,
+		isText: true,
 		tag: nil,
 		text: child,
 		parent: parent,
