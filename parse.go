@@ -94,7 +94,7 @@ func (p *Parser)Parse() (*Tree, error) {
 
 func (p *Parser)pushText(offset, n int64, text []byte) error {
 	txt := make([]byte, len(text))
-	copy(text, txt)    //a text can be updated, so we make a copy here
+	copy(txt, text)    //a text can be updated, so we make a copy here
 	t := &Text{
 		Text: txt,
 	}

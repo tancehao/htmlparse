@@ -23,7 +23,11 @@ func (t *Tag)Modify() string {
 	for k, v := range t.Attributes {
 	    attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", k, v))
 	}
-	str := fmt.Sprintf("<%s %s>", t.TagName, strings.Join(attrs, " "))
+	str := fmt.Sprintf("<%s", t.TagName)
+	if len(attrs) > 0 {
+	    str += " "
+	}
+	str += fmt.Sprintf("%s>", strings.Join(attrs, " "))
 	if t.NoEnd {
 	    return str
 	}
@@ -42,7 +46,7 @@ func (t *Text)Modify() string {
     return string(t.Text)
 }
 
-func (t *Tag)WriteText(position, int64, data []byte) (*Text, error) {
+func (t *Tag)WriteText(position int64, data []byte) (*Text, error) {
 	if t.NoEnd {
 	    return nil, NoSpaceToWrite
 	}
@@ -80,7 +84,7 @@ func (t *Tag)writeSegment(position int64, itf interface{}) *segment {
 	if len(t.children) == 0 {
 	    position = 0
 	}
-	if position >= int64(len(t.children)) {
+	if position >= int64(len(t.children)) && len(t.children) > 0 {
 	    position = int64(len(t.children) - 1)
 	}
 	seg := &segment{
@@ -105,7 +109,9 @@ func (t *Tag)writeSegment(position int64, itf interface{}) *segment {
 			s.segment = seg
 			seg.tag = s
 	}
-	t.children = append(append(t.children[:position], seg), t.children[position:]...)
+	cp := make([]*segment, len(t.children[position:]))
+	copy(cp, t.children[position:])
+	t.children = append(append(t.children[:position], seg), cp...)
     return seg
 }
 
@@ -118,7 +124,9 @@ func (t *Tag)Delete(deleteChildren int) error {
 	case 1:
         for i, seg := range t.segment.parent.children {
 		    if seg == t.segment {
-			    t.segment.parent.children = append(t.segment.parent.children[:i], t.segment.parent.children[i+1:]...)
+				cp := make([]*segment, len(t.segment.parent.children))
+				copy(cp, t.segment.parent.children)
+			    t.segment.parent.children = append(t.segment.parent.children[:i], cp[i+1:]...)
 			}
 		}
 	case 0:
