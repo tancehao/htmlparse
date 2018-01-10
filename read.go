@@ -154,6 +154,16 @@ func (t *Tag)Prev() *Tag {
 	return nil
 }
 
+//return the next tag of a tag
+func (t *Tag)Next() *Tag {
+    for seg := t.segment.next(); seg != nil; seg = seg.next() {
+	    if seg.isTag == true {
+		    return seg.tag
+		}
+	}
+	return nil
+}
+
 //check whether a tag is what we want using a filter
 func (t *Tag)checkByFilter(filter map[string]string) bool {
     for k, v := range filter {
