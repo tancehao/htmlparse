@@ -25,30 +25,39 @@ go get -u github.com/tancehao/htmlparse
 
 ## api
 ### Tree
-* Filter(filter map[string]string) []*Tag
-* Find(attr, value string) *TagSets
-* String() string
+* #### Filter(filter map[string]string) []*Tag
+* #### Find(attr, value string) *TagSets
+* #### String() string
+* #### Modify() string
 
 
 ### Tag
-* Find(attr, value string) *TagSets
-* GetContent() []byte
-* String() string
-* Extract() []byte
-* checkByFilter(filter map[string]string) bool
-* checkByCondition(attr, value string) bool
+* #### Find(attr, value string) *TagSets
+* #### GetContent() []byte
+* #### String() string
+* #### Extract() []byte
+* #### Index() int64
+* #### Prev() *Tag
+* #### Next() *Tag
+* #### Modify() string
+* #### WriteText(position int64, data []byte) (*Text, error)
+* #### WriteTag(position int64, tagname string) (*Tag, error)
+* #### Delete() error
 
 
 ### TagSets
-* Find(attr, value string) *TagSets
-* All() []*Tag
-* One() *Tag
-* GetAttributes(attr string) []string
-* String() string
+* #### Find(attr, value string) *TagSets
+* #### All() []*Tag
+* #### One() *Tag
+* #### GetAttributes(attr string) []string
+* #### String() string
 
 
 ### Text
-* String()
+* #### String() string
+* #### Index() int64
+* #### Modify() string
+* #### Delete()
 
 ## Examples
 

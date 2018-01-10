@@ -28,63 +28,64 @@ func (p *Parser)Parse() (*Tree, error) {
 		return nil, NilTextError
 	}
 	var n, offset int64
-	var segment []byte
+	var seg []byte
 	var err error
 	var tree *Tree
 	var tag *Tag
 	for {
-		n, segment, err = ReadSegment(p.data, offset)
+		n, seg, err = ReadSegment(p.data, offset)
 		if err != nil {
 			break
 		}
-		if IsOpenTag(segment) {
-			tag, err = p.parseTag(segment)
+		if IsOpenTag(seg) {
+			tag, err = p.parseTag(seg)
 			if err != nil {
 				continue
 			}
 
 			//build relationship with its parent when it's not the root tag
 			if parent := p.getLastTag(); parent != nil {
-				seg := &segment{
+				s := &segment{
 				    tree: p.tree,
 					parent: parent,
 				}
-				seg.LinkToTag(tag, offset, n)
-				parent.AddChild(seg)
+				s.LinkToTag(tag, offset, n)
+				parent.addChild(s)
 			} else { //it's the root tag
 				tree = &Tree{
 					data: p.data,
 					root: tag,
 				}
-				seg := &segment{
+				s := &segment{
 					tree:   tree,
 					parent: nil,
 				}
 				p.tree = tree
-				seg.LinkToTag(tag, 0, int64(len(p.data)))
+				s.LinkToTag(tag, 0, int64(len(p.data)))
 			}
 
 			//push it to the tag stack, and pop it when its close tag comes
 			if !tag.NoEnd {
 				p.tagStack = append(p.tagStack, tag)
 			}
-		} else if IsCloseTag(segment) {
-			tagName := ReadWord(segment[2:])
+		} else if IsCloseTag(seg) {
+			tagName := ReadWord(seg[2:])
 			//pop its open tag, as well as those tags enbeded within them whose close tag were missed
 			leng := len(p.tagStack)
 			for i := leng - 1; i >= 0; i-- {
 				if string(tagName) == p.tagStack[i].TagName {
-					p.tagStack[i].SetLimit(offset + n)
+					//p.tagStack[i].setLimit(offset + n)
+					p.tagStack[i].segment.limit = offset + n
 					p.tagStack = p.tagStack[:i]
 					break
 				}
 			}
 			//if no tag matches this close tag, treat it as text
 			if leng == len(p.tagStack) {
-				p.pushText(offset, n, segment)
+				p.pushText(offset, n, seg)
 			}
 		} else {
-			p.pushText(offset, n, segment)
+			p.pushText(offset, n, seg)
 		}
 		offset = offset + n
 	}
@@ -103,7 +104,7 @@ func (p *Parser)pushText(offset, n int64, text []byte) error {
 			tree: p.tree,
 		}
 		s.LinkToText(t, offset, n)
-		parent.AddChild(s)
+		parent.addChild(s)
 	}
 	return nil
 }

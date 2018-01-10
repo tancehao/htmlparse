@@ -73,29 +73,15 @@ func (s *segment)LinkToText(t *Text, offset, n int64) {
 }
 
 func (seg *segment)index() int64 {
-    for i, s := range seg.parent {
+    for i, s := range seg.parent.children {
 	    if s == seg {
-		    return i
+		    return int64(i)
 		}
 	}
 	return -1
 }
 
-func (t *Tag)AddChild(s *segment) {
+func (t *Tag)addChild(s *segment) {
     t.children = append(t.children, s)
-}
-
-func (t *Tag)SetLimit(n int64) {
-	t.segment.limit = n
-}
-
-//return the index of a tag in its parent
-func (t *Tag)Index() int64 {
-    return t.segment.index()
-}
-
-//return the index of a text in its parent
-func (t *Text)Index() int64 {
-    return t.segment.Index()
 }
 

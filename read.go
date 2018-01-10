@@ -1,10 +1,5 @@
 package htmlparse
 
-import (
-	"strings"
-	"fmt"
-)
-
 //filter a tag sets to another with conditions
 func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
 	result := []*Tag{}
@@ -81,7 +76,7 @@ func (s *segment)prev() *segment {
     if s == nil || s.parent == nil || len(s.parent.children) == 0 || s.parent.children[0] == s {
 	    return nil
 	}
-    for i, t: = range s.parent.children {
+    for i, t := range s.parent.children {
 	    if t == s {
 			return s.parent.children[i-1]
 		}
@@ -91,10 +86,10 @@ func (s *segment)prev() *segment {
 
 //return the next segment of a segment
 func (s *segment)next() *segment {
-    if s == nil || s.parent == nil || len(s.parent.children) == 0 || s.parent.children[len(s.parent.children) - 1] == s {
+    if (s == nil) || (s.parent == nil) || (len(s.parent.children) == 0) || (s.parent.children[len(s.parent.children) - 1] == s) {
 	    return nil
 	}
-    for i, t: = range s.parent.children {
+    for i, t := range s.parent.children {
 	    if t == s {
 			return s.parent.children[i+1]
 		}
@@ -162,6 +157,11 @@ func (t *Tag)Next() *Tag {
 		}
 	}
 	return nil
+}
+
+//return the index of a tag in its parent
+func (t *Tag)Index() int64 {
+    return t.segment.index()
 }
 
 //check whether a tag is what we want using a filter
@@ -259,3 +259,9 @@ func (t *Text)String() string {
 	}
     return string(t.segment.getContent())
 }
+
+//return the index of a text in its parent
+func (t *Text)Index() int64 {
+    return t.segment.index()
+}
+
