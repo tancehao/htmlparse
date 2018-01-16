@@ -8,6 +8,7 @@ import (
 
 var (
 	NotTagError = errors.New("it's not a tag")
+	NotCssSelectorError = errors.New("css selector syntax error")
 	TagsWithoutClose = map[string]bool{
 		"br":    true,
 		"img":   true,
@@ -111,4 +112,21 @@ func WrappedBy(str, wrap string) bool {
 	    return true
 	}
 	return false
+}
+
+func ParseChainSelector(chainSelector string) ([]string, error) {
+    if len(chainSelector) == 0 || chainSelector[0] == ' ' {
+	    return []string{}, NotCssSelectorError
+	}
+	selectors := []string{}
+	last := 0
+	for i, s := range chainSelector {
+	    if s == ' ' {
+			selector := chainSelector[last:i]
+			selectors = append(selectors, selector)
+			last = i
+		}
+	}
+    selectors = append(selectors, chainSelector[last:])
+	return selectors, nil
 }

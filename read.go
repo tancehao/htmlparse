@@ -245,6 +245,25 @@ func (t *TagSets)String() string {
 	return s
 }
 
+func (s *TagSets)Select(chainSelector string) *TagSets {
+    selectors, err := ParseChainSelector(chainSelector)
+	if err != nil {
+	    return &TagSets{
+			tags: []*Tag{},
+		}
+	}
+	ret := &TagSets{
+	    tags: s.tags,
+	}
+	for slt := range selectors {
+	    ret = ret.selectByOne(slt)
+	}
+	return ret
+}
+
+func (s *TagSets)selectByOne(selector string) *TagSets {
+    
+}
 
 /*
 *
