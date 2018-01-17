@@ -145,7 +145,7 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 			if attr == "class" {
 				classes := strings.Split(value, " ")
 				for _, c := range classes {
-					newTag.Class[c] = true
+					newTag.Class[bytes.TrimSpace(c)] = true
 				}
 			}
 		}

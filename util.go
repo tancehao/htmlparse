@@ -26,11 +26,6 @@ func ReadWord(s []byte) []byte {
 		    continue
 		}
 		return s[:i]
-		/*
-		if unicode.IsSpace(rune(s[i])) || unicode.IsDigit(rune(s[i])) {
-			return s[:i]
-		}
-		*/
 	}
 	return []byte{}
 }
@@ -115,13 +110,13 @@ func WrappedBy(str, wrap string) bool {
 }
 
 func ParseChainSelector(chainSelector string) ([]string, error) {
-    if len(chainSelector) == 0 || chainSelector[0] == ' ' {
+    if len(chainSelector) == 0 {
 	    return []string{}, NotCssSelectorError
 	}
 	selectors := []string{}
 	last := 0
 	for i, s := range chainSelector {
-	    if s == ' ' {
+	    if s == ' ' || s == '>' || s == '+' {
 			selector := chainSelector[last:i]
 			selectors = append(selectors, selector)
 			last = i
@@ -130,3 +125,4 @@ func ParseChainSelector(chainSelector string) ([]string, error) {
     selectors = append(selectors, chainSelector[last:])
 	return selectors, nil
 }
+

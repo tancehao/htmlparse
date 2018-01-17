@@ -1,5 +1,9 @@
 package htmlparse
 
+import (
+    "bytes"
+)
+
 //filter a tag sets to another with conditions
 func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
 	result := []*Tag{}
@@ -184,6 +188,7 @@ func (t *Tag)checkByCondition(attr, value string) bool {
 			return false
 		}
 	case "class":
+		value = bytes.TrimSpace(value)
 		if _, ok := t.Class[value]; ok {
 			return true
 		}
@@ -261,8 +266,24 @@ func (s *TagSets)Select(chainSelector string) *TagSets {
 	return ret
 }
 
+//select with css style selector
+//one can't use some complex selectors except by tagName, by id or by class
 func (s *TagSets)selectByOne(selector string) *TagSets {
-    
+    var filters map[string]string
+	last := 0
+	for i, s := range selector {
+	    if i == 0 || (s != '.' && s != '#') {
+		    continue
+		}
+		switch selector[last] {
+		case '.':
+			filters["class"] += fmt.Sprintf("%s ", selector[last+1:i])
+		case '#':
+			filters["id"] += selector[last+1:i]
+		default:
+			filters["tagName"] = selector[last+1:i]
+		}
+	}
 }
 
 /*
