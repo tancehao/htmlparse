@@ -48,7 +48,6 @@ go get -u github.com/tancehao/htmlparse
 ### TagSets
 * #### Find(attr, value string) *TagSets
 * #### All() []*Tag
-* #### One() *Tag
 * #### GetAttributes(attr string) []string
 * #### String() string
 

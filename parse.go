@@ -49,7 +49,7 @@ func (p *Parser)Parse() (*Tree, error) {
 				    tree: p.tree,
 					parent: parent,
 				}
-				s.LinkToTag(tag, offset, n)
+				s.linkToTag(tag, offset, n)
 				parent.addChild(s)
 			} else { //it's the root tag
 				tree = &Tree{
@@ -61,7 +61,7 @@ func (p *Parser)Parse() (*Tree, error) {
 					parent: nil,
 				}
 				p.tree = tree
-				s.LinkToTag(tag, 0, int64(len(p.data)))
+				s.linkToTag(tag, 0, int64(len(p.data)))
 			}
 
 			//push it to the tag stack, and pop it when its close tag comes
@@ -103,7 +103,7 @@ func (p *Parser)pushText(offset, n int64, text []byte) error {
 		    parent: parent,
 			tree: p.tree,
 		}
-		s.LinkToText(t, offset, n)
+		s.linkToText(t, offset, n)
 		parent.addChild(s)
 	}
 	return nil
@@ -129,10 +129,12 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
     if len(tag) == 0 {
 	    return newTag, nil
 	}
-
 	//parse the attributes
 	attrValues := bytes.Split(tag, []byte(" "))
 	for _, pair := range attrValues {
+		if len(pair) == 0 {
+		    continue
+		}
 		i := bytes.Index(pair, []byte("="))
 		if i == -1 {
 			newTag.Attributes[string(pair)] = ""
@@ -145,7 +147,7 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 			if attr == "class" {
 				classes := strings.Split(value, " ")
 				for _, c := range classes {
-					newTag.Class[bytes.TrimSpace(c)] = true
+					newTag.Class[strings.TrimSpace(c)] = true
 				}
 			}
 		}
