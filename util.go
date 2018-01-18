@@ -2,28 +2,27 @@ package htmlparse
 
 import (
 	"errors"
+	"strings"
 	"unicode"
-    "strings"
 )
 
 var (
-	NotTagError = errors.New("it's not a tag")
+	NotTagError         = errors.New("it's not a tag")
 	NotCssSelectorError = errors.New("css selector syntax error")
-	TagsWithoutClose = map[string]bool{
-		"br":    true,
-		"img":   true,
-		"hr":    true,
-		"input": true,
-		"link":  true,
-		"meta":  true,
-	    "noscript": true,
+	TagsWithoutClose    = map[string]bool{
+		"br":       true,
+		"img":      true,
+		"hr":       true,
+		"input":    true,
+		"link":     true,
+		"meta":     true,
 	}
 )
 
 func ReadWord(s []byte) []byte {
 	for i := 0; i < len(s); i++ {
 		if unicode.IsLetter(rune(s[i])) || unicode.IsDigit(rune(s[i])) {
-		    continue
+			continue
 		}
 		return s[:i]
 	}
@@ -100,12 +99,11 @@ func IsCloseTag(text []byte) bool {
 }
 
 func WrappedBy(str, wrap string) bool {
-    if len(str) - 2 * len(wrap) < 0 {
-	    return false
+	if len(str)-2*len(wrap) < 0 {
+		return false
 	}
 	if strings.HasPrefix(str, wrap) && strings.HasSuffix(str, wrap) {
-	    return true
+		return true
 	}
 	return false
 }
-

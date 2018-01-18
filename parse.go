@@ -2,12 +2,12 @@ package htmlparse
 
 import (
 	"bytes"
-    "errors"
-    "strings"
+	"errors"
+	"strings"
 )
 
 var (
-	NilTextError     = errors.New("the html to be parsed should not be null")
+	NilTextError = errors.New("the html to be parsed should not be null")
 )
 
 type Parser struct {
@@ -18,12 +18,12 @@ type Parser struct {
 }
 
 func NewParser(data []byte) *Parser {
-    return &Parser{
-	    data: data,
+	return &Parser{
+		data: data,
 	}
 }
 
-func (p *Parser)Parse() (*Tree, error) {
+func (p *Parser) Parse() (*Tree, error) {
 	if len(p.data) == 0 {
 		return nil, NilTextError
 	}
@@ -46,7 +46,7 @@ func (p *Parser)Parse() (*Tree, error) {
 			//build relationship with its parent when it's not the root tag
 			if parent := p.getLastTag(); parent != nil {
 				s := &segment{
-				    tree: p.tree,
+					tree:   p.tree,
 					parent: parent,
 				}
 				s.linkToTag(tag, offset, n)
@@ -92,16 +92,16 @@ func (p *Parser)Parse() (*Tree, error) {
 	return tree, nil
 }
 
-func (p *Parser)pushText(offset, n int64, text []byte) error {
+func (p *Parser) pushText(offset, n int64, text []byte) error {
 	txt := make([]byte, len(text))
-	copy(txt, text)    //a text can be updated, so we make a copy here
+	copy(txt, text) //a text can be updated, so we make a copy here
 	t := &Text{
 		Text: txt,
 	}
 	if parent := p.getLastTag(); parent != nil {
 		s := &segment{
-		    parent: parent,
-			tree: p.tree,
+			parent: parent,
+			tree:   p.tree,
 		}
 		s.linkToText(t, offset, n)
 		parent.addChild(s)
@@ -109,16 +109,16 @@ func (p *Parser)pushText(offset, n int64, text []byte) error {
 	return nil
 }
 
-func (p *Parser)parseTag(tag []byte) (*Tag, error) {
+func (p *Parser) parseTag(tag []byte) (*Tag, error) {
 	if tag[0] != '<' || tag[1] == '/' || tag[len(tag)-1] != '>' {
 		return nil, NotTagError
 	}
 	tagName := ReadWord(tag[1:])
 	newTag := &Tag{
-		TagName: string(tagName),
-	    Attributes: map[string]string{},
-	    Class: map[string]bool{},
-	    children: []*segment{},
+		TagName:    string(tagName),
+		Attributes: map[string]string{},
+		Class:      map[string]bool{},
+		children:   []*segment{},
 	}
 
 	if IsSingleTag(string(tagName)) {
@@ -126,14 +126,14 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 	}
 
 	tag = tag[len(tagName)+1 : len(tag)-1]
-    if len(tag) == 0 {
-	    return newTag, nil
+	if len(tag) == 0 {
+		return newTag, nil
 	}
 	//parse the attributes
 	attrValues := bytes.Split(tag, []byte(" "))
 	for _, pair := range attrValues {
 		if len(pair) == 0 {
-		    continue
+			continue
 		}
 		i := bytes.Index(pair, []byte("="))
 		if i == -1 {
@@ -141,7 +141,7 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 		} else {
 			attr, value := string(pair[:i]), string(pair[i+1:])
 			if WrappedBy(value, "'") || WrappedBy(value, string('"')) {
-			    value = value[1:len(value)-1]
+				value = value[1 : len(value)-1]
 			}
 			newTag.Attributes[attr] = value
 			if attr == "class" {
@@ -156,7 +156,7 @@ func (p *Parser)parseTag(tag []byte) (*Tag, error) {
 	return newTag, nil
 }
 
-func (p *Parser)getLastTag() *Tag {
+func (p *Parser) getLastTag() *Tag {
 	s := p.tagStack
 	if len(s) == 0 {
 		return nil
