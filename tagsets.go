@@ -10,7 +10,9 @@ var (
 	NotContentError     = errors.New("the content to be linked is not linkable")
 )
 
-type TagSets []*Ttag
+type TagSets struct {
+    tags []*Tag
+}
 
 //filter a tags set to another one, it can be used with a chain style
 //e.g. TagSets.Find("tagName", "form").Find("method", "post").Find("tagName", "input").Find("type", "text")
@@ -34,14 +36,16 @@ func (t *TagSets) All() []*Tag {
 	return t.tags
 }
 
-func (t *TagSets) GetAttributes(attr string) []string {
-	attrs := []string{}
+func (t *TagSets) GetAttributes(attrs ...string) []map[string]string {
+	var ret []map[string]string
 	for _, tag := range t.tags {
-		if v, ok := tag.Attributes[attr]; ok {
-			attrs = append(attrs, v)
+		values := map[string]string{}
+		for _, attr := range attrs {
+		    values[attr] = tag.GetAttribute(attr)
 		}
+		ret = append(ret, values)
 	}
-	return attrs
+	return ret
 }
 
 func (t *TagSets) String() string {

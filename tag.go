@@ -73,6 +73,22 @@ func (t *Tag) GetContent() []byte {
 	return t.segment.getContent()
 }
 
+func (t *Tag) GetAttribute(attr string) string {
+    switch (attr) {
+	case "tagName":
+		return t.TagName
+	case "content":
+		return string(t.Extract())
+	default:
+		v, ok := t.Attributes[attr]
+		if ok {
+		    return v
+		} else {
+		    return ""
+		}
+	}
+}
+
 //if only returns the original data
 //one should call Modify() to get the modified data
 func (t *Tag) String() string {
