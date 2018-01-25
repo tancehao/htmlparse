@@ -10,9 +10,7 @@ var (
 	NotContentError     = errors.New("the content to be linked is not linkable")
 )
 
-type TagSets struct {
-	tags []*Tag
-}
+type TagSets []*Ttag
 
 //filter a tags set to another one, it can be used with a chain style
 //e.g. TagSets.Find("tagName", "form").Find("method", "post").Find("tagName", "input").Find("type", "text")
