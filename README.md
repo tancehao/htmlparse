@@ -1,13 +1,15 @@
 htmlparse
 ===
 
-Htmlparse is a go tool for parsing a html document into a tree.
-
-The basic structure of this package is the Tag struct. Given a tag, you can easily do these things:
-
-* Get its attributes.
-* Extract its text contents as fast as possible.
-* Find the tags you want from its children with some filters.
+Htmlparse is a go tool for parsing a html document.  
+  
+It converts a html document into a tree. Each node in the tree is either a tag or a text. Given a tag, a programmer  
+  
+can easily get its original infos, including its metadata, its childrent, its siblings and the text wrapped in it.  
+  
+One can also modify a tree, by writing text or tags into a tag.  
+  
+It can be used in web crawlers, analysis, batch formating and etc.  
 
 ---
 
@@ -28,7 +30,13 @@ go get -u github.com/tancehao/htmlparse
 	The only one method needed to convert the original bytes to a tree.  
 	Example:
 	```go
-		content, _ := ioutil.ReadFile("index.html")
+		import (
+			"github.com/tancehao/htmlparse"		
+		)
+        
+		//...
+		
+	    content, _ := ioutil.ReadFile("index.html")
 		parser := htmlparse.NewParse(content)
 		tree := parser.Parse()
 	```
