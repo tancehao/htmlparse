@@ -5,9 +5,9 @@ Htmlparse is a go tool for parsing a html document.
   
 It converts a html document into a tree. Each node in the tree is either a tag or a text. Given a tag, a programmer  
   
-can easily get its original infos, including its metadata, its childrent, its siblings and the text wrapped in it.  
+can easily get its original infos, including its metadata, its children, its siblings and the text wrapped in it.  
   
-One can also modify a tree, by writing text or tags into a tag.  
+One can also modify a tree, by writing something into or delete a tag.  
   
 It can be used in web crawlers, analysis, batch formating and etc.  
 
@@ -133,7 +133,6 @@ go get -u github.com/tancehao/htmlparse
 		//<div class="productName">Product1</div>
 		//<div class="productName">Product2</div>
 		//<div class="productName">Product3</div>
-		//<div class="productName">Product4</div>
 
 		for _, name := range names {
 			name.WriteText(0, []byte("[ONSALE] "))
@@ -144,7 +143,6 @@ go get -u github.com/tancehao/htmlparse
 		//<div class="productName">[ONSALE] Product1</div>
 		//<div class="productName">[ONSALE] Product2</div>
 		//<div class="productName">[ONSALE] Product3</div>
-		//<div class="productName">[ONSALE] Product4</div>
 	```
 
 * #### WriteTag(position int64, tagname string) (*Tag, error)
