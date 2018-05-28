@@ -21,15 +21,14 @@ type Tag struct {
 	segment    *segment
 }
 
-
 //whether a tag has a class
 func (t *Tag) HasClass(class string) bool {
-    for _, c := range t.Class {
-        if c == class {
-            return true
-        }
-    }
-    return false
+	for _, c := range t.Class {
+		if c == class {
+			return true
+		}
+	}
+	return false
 }
 
 //filter a set of tags from a tag and it's children by tag name
@@ -39,39 +38,40 @@ func (t *Tag) FindByName(name string) []*Tag {
 
 //filter a set of tags from a tag and it's children by class
 func (t *Tag) FindByClass(class string) []*Tag {
-	return t.FindWithFunc(func (t *Tag) bool {
-        return t.HasClass(class)
-    })
+	return t.FindWithFunc(func(t *Tag) bool {
+		return t.HasClass(class)
+	})
 }
 
 //filter a subset of tags from a tag's children
 func (t *Tag) Find(conds map[string]string) []*Tag {
-    return t.FindWithFunc(func (tag *Tag) bool {
-        return tag.checkByConditions(conds)
-    })
+	return t.FindWithFunc(func(tag *Tag) bool {
+		return tag.checkByConditions(conds)
+	})
 }
 
 func (t *Tag) FindWithFunc(f func(*Tag) bool) []*Tag {
-    result := []*Tag{}
-    if f(t) {
-        result = append(result, t)
-    }
-    for _, seg := range t.children {
-        if seg.isTag && f(seg.tag) {
-            result = append(result, t)
-        }
-    }
-    return result
+	result := []*Tag{}
+	if f(t) {
+		result = append(result, t)
+	}
+	for _, seg := range t.children {
+		if seg.isTag && f(seg.tag) {
+			result = append(result, seg.tag.FindWithFunc(f)...)
+			//result = append(result, seg.tag)
+		}
+	}
+	return result
 }
 
 //check if a tag satisfies a set of conditions
 func (t *Tag) checkByConditions(conds map[string]string) bool {
-    for k, v := range conds {
-        if t.checkByCondition(k, v) == false {
-            return false
-        }
-    }
-    return true
+	for k, v := range conds {
+		if t.checkByCondition(k, v) == false {
+			return false
+		}
+	}
+	return true
 }
 
 //check if a tag satisfies a condition
@@ -103,7 +103,7 @@ func (t *Tag) GetContent() []byte {
 }
 
 func (t *Tag) GetAttribute(attr string) string {
-    switch (attr) {
+	switch attr {
 	case "tagName":
 		return t.TagName
 	case "content":
@@ -111,9 +111,9 @@ func (t *Tag) GetAttribute(attr string) string {
 	default:
 		v, ok := t.Attributes[attr]
 		if ok {
-		    return v
+			return v
 		} else {
-		    return ""
+			return ""
 		}
 	}
 }

@@ -2,12 +2,11 @@ package htmlparse
 
 import (
 	"errors"
-    "strings"
-    "fmt"
+	"strings"
 )
 
 var CssSelecotrSeparators = []byte{
-    ' ', '.', '#', '>', '+', '[', ']',
+	' ', '.', '#', '>', '+', '[', ']',
 }
 
 var (
@@ -17,33 +16,33 @@ var (
 )
 
 type TagSets struct {
-    tags []*Tag
+	tags []*Tag
 }
 
 //find a set of tags from the children of tags in a set with some conditions
 func (t *TagSets) Find(conds map[string]string) *TagSets {
-    return t.FindWithFunc(func(tag *Tag) bool {
-        return tag.checkByConditions(conds)
-    })
+	return t.FindWithFunc(func(tag *Tag) bool {
+		return tag.checkByConditions(conds)
+	})
 }
 
 //find a set of tags from the children of tags in a set with a function
 func (t *TagSets) FindWithFunc(f func(*Tag) bool) *TagSets {
-    result := []*Tag{}
-    for _, tag := range t.tags {
-        tgs := tag.FindWithFunc(f)
-        result = append(result, tgs...)
-    }
-    return &TagSets{tags: result}
+	result := []*Tag{}
+	for _, tag := range t.tags {
+		tgs := tag.FindWithFunc(f)
+		result = append(result, tgs...)
+	}
+	return &TagSets{tags: result}
 }
 
 //convert a tag set to another one using a function
-func (t *TagSets) Map(f func (*Tag) *Tag) *TagSets {
-    result := []*Tag{}
-    for _, tag := range t.tags {
-        result = append(result, f(tag))
-    }
-    return &TagSets{tags: result}
+func (t *TagSets) Map(f func(*Tag) *Tag) *TagSets {
+	result := []*Tag{}
+	for _, tag := range t.tags {
+		result = append(result, f(tag))
+	}
+	return &TagSets{tags: result}
 }
 
 func (t *TagSets) FindByName(name string) *TagSets {
@@ -52,8 +51,8 @@ func (t *TagSets) FindByName(name string) *TagSets {
 
 func (t *TagSets) FindByClass(class string) *TagSets {
 	return t.FindWithFunc(func(tag *Tag) bool {
-        return tag.HasClass(class)
-    })
+		return tag.HasClass(class)
+	})
 }
 
 //get the tag list
@@ -66,7 +65,7 @@ func (t *TagSets) GetAttributes(attrs ...string) []map[string]string {
 	for _, tag := range t.tags {
 		values := map[string]string{}
 		for _, attr := range attrs {
-		    values[attr] = tag.GetAttribute(attr)
+			values[attr] = tag.GetAttribute(attr)
 		}
 		ret = append(ret, values)
 	}
@@ -74,12 +73,12 @@ func (t *TagSets) GetAttributes(attrs ...string) []map[string]string {
 }
 
 func (t *TagSets) HasTag(tag *Tag) bool {
-    for _, tg := range t.tags {
-        if tg == tag {
-            return true
-        }
-    }
-    return false
+	for _, tg := range t.tags {
+		if tg == tag {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *TagSets) String() string {
@@ -92,85 +91,83 @@ func (t *TagSets) String() string {
 
 //find a set of tags using a css selector
 func (t *TagSets) FindByCssSelector(path string) (ret *TagSets) {
-    result := []*Tag{}
-    paths := strings.Split(path, ",")
-    for _, p := range paths {
-        subset := t.findByPath(p)
-        if subset == nil {
-            break
-        }
-        for _, tag := range subset.tags {
-            if t.HasTag(tag) {
-                continue
-            }
-            result = append(result, tag)
-        }
-    }
-    return &TagSets{tags: result}
+	result := []*Tag{}
+	paths := strings.Split(path, ",")
+	for _, p := range paths {
+		subset := t.findByPath(p)
+		if subset == nil {
+			break
+		}
+		for _, tag := range subset.tags {
+			if t.HasTag(tag) {
+				continue
+			}
+			result = append(result, tag)
+		}
+	}
+	return &TagSets{tags: result}
 }
 
 func (t *TagSets) findByPath(path string) *TagSets {
-    var subset []*Tag
-    var selector string
-    selector = readSelector(path)
-    if selector == "" {
-        return t
-    }
-    /* Note that there should not simply call Find, because most selectors have specified meanings on relationship between tags */
-    switch (selector[0]) {
-    case '#':
-        for _, tag := range t.tags {
-            if tag.checkByCondition("id", selector[1:]) {
-                subset = append(subset, tag)
-            }
-        }
-    case '.':
-        for _, tag := range t.tags {
-            if tag.HasClass(selector[1:]) {
-                subset = append(subset, tag)
-                fmt.Println(tag.TagName)
-            }
-        }
-    case ' ':    //all the descendant
-        for _, tag := range t.tags {
-            ss := tag.FindWithFunc(func(tg *Tag) bool {
-                return true
-            })
-            /* the original tag must be the first element */
-            subset = append(subset, ss[1:]...)
-        }
-    case '>':
-        for _, tag := range t.tags {
-            for _, child := range tag.children {
-                if child.isTag {
-                    subset = append(subset, child.tag)
-                }
-            }
-        }
-    case '+':
-        for _, tag := range t.tags {
-            t := tag
-            for t.Next() != nil {
-                subset = append(subset, t)
-                t = t.Next()
-            }
-        }
+	var subset []*Tag
+	var selector string
+	selector = readSelector(path)
+	if selector == "" {
+		return t
+	}
+	/* Note that there should not simply call Find, because most selectors have specified meanings on relationship between tags */
+	switch selector[0] {
+	case '#':
+		for _, tag := range t.tags {
+			if tag.checkByCondition("id", selector[1:]) {
+				subset = append(subset, tag)
+			}
+		}
+	case '.':
+		for _, tag := range t.tags {
+			if tag.HasClass(selector[1:]) {
+				subset = append(subset, tag)
+			}
+		}
+	case ' ': //all the descendant
+		for _, tag := range t.tags {
+			ss := tag.FindWithFunc(func(tg *Tag) bool {
+				return true
+			})
+			/* the original tag must be the first element */
+			subset = append(subset, ss[1:]...)
+		}
+	case '>':
+		for _, tag := range t.tags {
+			for _, child := range tag.children {
+				if child.isTag {
+					subset = append(subset, child.tag)
+				}
+			}
+		}
+	case '+':
+		for _, tag := range t.tags {
+			t := tag
+			for t.Next() != nil {
+				subset = append(subset, t)
+				t = t.Next()
+			}
+		}
 
-    case '[':
+	case '[':
 
-    default:  //tag name
-    }
-    return (&TagSets{tags: subset}).findByPath(path[len(selector):])
+	default: //tag name
+	}
+	return (&TagSets{tags: subset}).findByPath(path[len(selector):])
 }
 
 func readSelector(path string) (selector string) {
-    for i := 1; i < len(path); i ++ {
-        for _, s := range CssSelecotrSeparators {
-            if s == path[i] {
-                return path[:i]
-            }
-        }
-        return path
-    }
-    return ""
+	for i := 1; i < len(path); i++ {
+		for _, s := range CssSelecotrSeparators {
+			if s == path[i] {
+				return path[:i]
+			}
+		}
+	}
+	return path
 }

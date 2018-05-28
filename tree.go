@@ -8,17 +8,17 @@ type Tree struct {
 //find some tags from a html tree
 func (t *Tree) Find(filter map[string]string) *TagSets {
 	//return t.root.Find(filter)
-    return (&TagSets{tags: []*Tag{t.root}}).Find(filter)
+	return (&TagSets{tags: []*Tag{t.root}}).Find(filter)
 }
 
 //find the tags by name
 func (t *Tree) FindByName(name string) *TagSets {
-    return (&TagSets{tags: []*Tag{t.root}}).FindByName(name)
+	return (&TagSets{tags: []*Tag{t.root}}).FindByName(name)
 }
 
 //find the tags by a class
 func (t *Tree) FindByClass(class string) *TagSets {
-    return (&TagSets{tags: []*Tag{t.root}}).FindByClass(class)
+	return (&TagSets{tags: []*Tag{t.root}}).FindByClass(class)
 }
 
 //convert a tree to string

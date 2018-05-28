@@ -10,12 +10,12 @@ var (
 	NotTagError         = errors.New("it's not a tag")
 	NotCssSelectorError = errors.New("css selector syntax error")
 	TagsWithoutClose    = map[string]bool{
-		"br":       true,
-		"img":      true,
-		"hr":       true,
-		"input":    true,
-		"link":     true,
-		"meta":     true,
+		"br":    true,
+		"img":   true,
+		"hr":    true,
+		"input": true,
+		"link":  true,
+		"meta":  true,
 	}
 )
 
