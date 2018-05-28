@@ -15,54 +15,83 @@ var (
 type Tag struct {
 	TagName    string
 	Attributes map[string]string
-	Class      map[string]bool
+	Class      []string
 	NoEnd      bool //whether it's a single tag
 	children   []*segment
 	segment    *segment
 }
 
-func FilterTags(originTags []*Tag, filter map[string]string) []*Tag {
-	result := []*Tag{}
-	for _, tag := range originTags {
-		if len(tag.children) > 0 { //if a tag has children, process them recursively
-			subTags := []*Tag{}
-			if tag.checkByFilter(filter) {
-				result = append(result, tag)
-			}
-			for _, c := range tag.children {
-				if c.isTag {
-					subTags = append(subTags, c.tag)
-				}
-			}
-			if len(subTags) > 0 {
-				ts := FilterTags(subTags, filter)
-				for _, t := range ts {
-					result = append(result, t)
-				}
-			}
-		} else {
-			if tag.checkByFilter(filter) {
-				result = append(result, tag)
-			}
-		}
-	}
-	return result
+
+//whether a tag has a class
+func (t *Tag) HasClass(class string) bool {
+    for _, c := range t.Class {
+        if c == class {
+            return true
+        }
+    }
+    return false
 }
 
-//find a set of tags wrapped within a tag with a condition
-func (t *Tag) Find(filter map[string]string) *TagSets {
-	sets := &TagSets{
-		tags: []*Tag{t},
-	}
-	return sets.Find(filter)
-}
-
-func (t *Tag) FindByName(name string) *TagSets {
+//filter a set of tags from a tag and it's children by tag name
+func (t *Tag) FindByName(name string) []*Tag {
 	return t.Find(map[string]string{"tagName": name})
 }
 
-func (t *Tag) FindByClass(class string) *TagSets {
-	return t.Find(map[string]string{"class": class})
+//filter a set of tags from a tag and it's children by class
+func (t *Tag) FindByClass(class string) []*Tag {
+	return t.FindWithFunc(func (t *Tag) bool {
+        return t.HasClass(class)
+    })
+}
+
+//filter a subset of tags from a tag's children
+func (t *Tag) Find(conds map[string]string) []*Tag {
+    return t.FindWithFunc(func (tag *Tag) bool {
+        return tag.checkByConditions(conds)
+    })
+}
+
+func (t *Tag) FindWithFunc(f func(*Tag) bool) []*Tag {
+    result := []*Tag{}
+    if f(t) {
+        result = append(result, t)
+    }
+    for _, seg := range t.children {
+        if seg.isTag && f(seg.tag) {
+            result = append(result, t)
+        }
+    }
+    return result
+}
+
+//check if a tag satisfies a set of conditions
+func (t *Tag) checkByConditions(conds map[string]string) bool {
+    for k, v := range conds {
+        if t.checkByCondition(k, v) == false {
+            return false
+        }
+    }
+    return true
+}
+
+//check if a tag satisfies a condition
+func (t *Tag) checkByCondition(attr, value string) bool {
+	switch attr {
+	case "tagName":
+		if t.TagName == value {
+			return true
+		} else {
+			return false
+		}
+	case "class":
+		return t.HasClass(value)
+	default:
+		v, ok := t.Attributes[attr]
+		if ok && (value == v || value == "") {
+			return true
+		}
+	}
+	return false
 }
 
 //get the contents contained by a tag, including its tagname and attributes
@@ -150,39 +179,6 @@ func (t *Tag) Index() int64 {
 	return t.segment.index()
 }
 
-//check whether a tag is what we want using a filter
-func (t *Tag) checkByFilter(filter map[string]string) bool {
-	for k, v := range filter {
-		if !t.checkByCondition(k, v) {
-			return false
-		}
-	}
-	return true
-}
-
-//check if one tag satisfies the condition
-func (t *Tag) checkByCondition(attr, value string) bool {
-	switch attr {
-	case "tagName":
-		if t.TagName == value {
-			return true
-		} else {
-			return false
-		}
-	case "class":
-		value = strings.TrimSpace(value)
-		if _, ok := t.Class[value]; ok {
-			return true
-		}
-	default:
-		v, ok := t.Attributes[attr]
-		if ok && (value == v || value == "") {
-			return true
-		}
-	}
-	return false
-}
-
 //return the modified data of a tag
 func (t *Tag) Modify() string {
 	attrs := []string{}
@@ -229,7 +225,7 @@ func (t *Tag) WriteTag(position int64, tagname string) (*Tag, error) {
 	tag := &Tag{
 		TagName:    tagname,
 		Attributes: map[string]string{},
-		Class:      map[string]bool{},
+		Class:      []string{},
 		NoEnd:      noend,
 		children:   []*segment{},
 		segment:    nil,

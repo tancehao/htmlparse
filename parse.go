@@ -117,7 +117,7 @@ func (p *Parser) parseTag(tag []byte) (*Tag, error) {
 	newTag := &Tag{
 		TagName:    string(tagName),
 		Attributes: map[string]string{},
-		Class:      map[string]bool{},
+		Class:      []string{},
 		children:   []*segment{},
 	}
 
@@ -147,7 +147,7 @@ func (p *Parser) parseTag(tag []byte) (*Tag, error) {
 			if attr == "class" {
 				classes := strings.Split(value, " ")
 				for _, c := range classes {
-					newTag.Class[strings.TrimSpace(c)] = true
+					newTag.Class = append(newTag.Class, strings.TrimSpace(c))
 				}
 			}
 		}
