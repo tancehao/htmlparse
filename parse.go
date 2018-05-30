@@ -11,10 +11,10 @@ var (
 )
 
 type Parser struct {
-	data     []byte //original html data
-	tagStack []*Tag //to store the opened tags temporarily when being parsed
+	data []byte //original html data
 
-	tree *Tree //the abstract tree to be generated
+	currentContainer *Tag
+	root             *Tag //the root tag of the dom tree, which contains the source bytes
 }
 
 func NewParser(data []byte) *Parser {
@@ -30,7 +30,6 @@ func (p *Parser) Parse() (*Tree, error) {
 	var n, offset int64
 	var seg []byte
 	var err error
-	var tree *Tree
 	var tag *Tag
 	for {
 		n, seg, err = ReadSegment(p.data, offset)
@@ -44,52 +43,42 @@ func (p *Parser) Parse() (*Tree, error) {
 			}
 
 			//build relationship with its parent when it's not the root tag
-			if parent := p.getLastTag(); parent != nil {
+			if p.root != nil {
 				s := &segment{
-					tree:   p.tree,
 					parent: parent,
 				}
 				s.linkToTag(tag, offset, n)
 				parent.addChild(s)
 			} else { //it's the root tag
-				tree = &Tree{
-					data: p.data,
-					root: tag,
-				}
 				s := &segment{
-					tree:   tree,
 					parent: nil,
+					data:   p.data,
 				}
-				p.tree = tree
 				s.linkToTag(tag, 0, int64(len(p.data)))
+				p.root = tag
 			}
-
-			//push it to the tag stack, and pop it when its close tag comes
-			if !tag.NoEnd {
-				p.tagStack = append(p.tagStack, tag)
+			if tag.NoEnd == false {
+				p.currentContainer = tag
 			}
 		} else if IsCloseTag(seg) {
 			tagName := ReadWord(seg[2:])
-			//pop its open tag, as well as those tags enbeded within them whose close tag were missed
-			leng := len(p.tagStack)
-			for i := leng - 1; i >= 0; i-- {
-				if string(tagName) == p.tagStack[i].TagName {
-					//p.tagStack[i].setLimit(offset + n)
-					p.tagStack[i].segment.limit = offset + n
-					p.tagStack = p.tagStack[:i]
-					break
-				}
+			for p.currentContainer.TagName != tagName && p.currentContainer != p.root {
+				//the close tag of the current container was misseed
+				p.currentContainer.segment.limit = offset
+				p.currentContainer = p.currentContainer.segment.parent.tag
 			}
-			//if no tag matches this close tag, treat it as text
-			if leng == len(p.tagStack) {
-				p.pushText(offset, n, seg)
+			p.currentContainer.segment.limit = offset + n
+			if p.currentContainer.TagName == tagName {
+				p.currentContainer = p.currentContainer.segment.parent.tag
+			} else {
+				break
 			}
 		} else {
 			p.pushText(offset, n, seg)
 		}
 		offset = offset + n
 	}
-	return tree, nil
+	return p.root, nil
 }
 
 func (p *Parser) pushText(offset, n int64, text []byte) error {
@@ -101,7 +90,6 @@ func (p *Parser) pushText(offset, n int64, text []byte) error {
 	if parent := p.getLastTag(); parent != nil {
 		s := &segment{
 			parent: parent,
-			tree:   p.tree,
 		}
 		s.linkToText(t, offset, n)
 		parent.addChild(s)

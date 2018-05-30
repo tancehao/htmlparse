@@ -1,38 +1,5 @@
 package htmlparse
 
-type Tree struct {
-	data []byte
-	root *Tag
-}
-
-//find some tags from a html tree
-func (t *Tree) Find(filter map[string]string) *TagSets {
-	//return t.root.Find(filter)
-	return (&TagSets{tags: []*Tag{t.root}}).Find(filter)
-}
-
-//find the tags by name
-func (t *Tree) FindByName(name string) *TagSets {
-	return (&TagSets{tags: []*Tag{t.root}}).FindByName(name)
-}
-
-//find the tags by a class
-func (t *Tree) FindByClass(class string) *TagSets {
-	return (&TagSets{tags: []*Tag{t.root}}).FindByClass(class)
-}
-
-//convert a tree to string
-//it returns the modified document
-func (t *Tree) String() string {
-	return t.root.String()
-}
-
-//one should call this method to get
-//the updated data of a document
-func (t *Tree) Modify() string {
-	return t.root.Modify()
-}
-
 //a general model of a tag or text, which can be found with its absolute position
 //a comment is treated as a text as well
 type segment struct {
@@ -40,13 +7,14 @@ type segment struct {
 	isTag  bool
 	tag    *Tag
 	text   *Text
-	tree   *Tree
 	parent *Tag
 
 	//offset and limit determins the absolute position
 	//of a segment in the document
 	offset int64
 	limit  int64
+
+	data []byte //the source bytes, empty if it's not the root tag
 }
 
 //link an abstacted segment to a concrete tag which has many useful infos
@@ -85,10 +53,11 @@ func (s *segment) getContent() []byte {
 	if s == nil {
 		return nil
 	}
-	if s.parent == nil { //root tag
-		return s.tree.data
+	tmp := s
+	for tmp.parent != nil {
+		tmp = tmp.parent
 	}
-	return s.tree.data[s.offset:s.limit]
+	return tmp.data[s.offset:s.limit]
 }
 
 //return the previous segment of a segment
