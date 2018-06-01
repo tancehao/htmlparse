@@ -28,12 +28,12 @@ func (t *TagSets) Find(conds map[string]string) *TagSets {
 
 //find a set of tags from the children of tags in a set with a function
 func (t *TagSets) FindWithFunc(f func(*Tag) bool) *TagSets {
-	result := []*Tag{}
+    result := &TagSets{}
+    //result := []*Tag{}
 	for _, tag := range t.tags {
-		tgs := tag.FindWithFunc(f)
-		result = append(result, tgs...)
+		result.merge(tag.FindWithFunc(f))
 	}
-	return &TagSets{tags: result}
+	return result
 }
 
 //convert a tag set to another one using a function
@@ -58,6 +58,14 @@ func (t *TagSets) FindByClass(class string) *TagSets {
 //get the tag list
 func (t *TagSets) All() []*Tag {
 	return t.tags
+}
+
+func (t *TagSets) push (tag *Tag) {
+    t.tags = append(t.tags, tag)
+}
+
+func (t *TagSets) merge (src *TagSets) {
+    t.tags = append(t.tags, src.tags...)
 }
 
 func (t *TagSets) GetAttributes(attrs ...string) []map[string]string {
@@ -135,7 +143,7 @@ func (t *TagSets) findByPath(path string) *TagSets {
 				return true
 			})
 			/* the original tag must be the first element */
-			subset = append(subset, ss[1:]...)
+			subset = append(subset, ss.tags[1:]...)
 		}
 	case '>':
 		for _, tag := range t.tags {
@@ -157,7 +165,12 @@ func (t *TagSets) findByPath(path string) *TagSets {
 	case '[':
 
 	default: //tag name
-	}
+	    for _, tag := range t.tags {
+            if tag.TagName == selector {
+                subset = append(subset, tag)
+            }
+        }
+    }
 	return (&TagSets{tags: subset}).findByPath(path[len(selector):])
 }
 

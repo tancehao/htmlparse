@@ -32,36 +32,42 @@ func (t *Tag) HasClass(class string) bool {
 }
 
 //filter a set of tags from a tag and it's children by tag name
-func (t *Tag) FindByName(name string) []*Tag {
+func (t *Tag) FindByName(name string) *TagSets {
 	return t.Find(map[string]string{"tagName": name})
 }
 
 //filter a set of tags from a tag and it's children by class
-func (t *Tag) FindByClass(class string) []*Tag {
+func (t *Tag) FindByClass(class string) *TagSets {
 	return t.FindWithFunc(func(t *Tag) bool {
 		return t.HasClass(class)
 	})
 }
 
 //filter a subset of tags from a tag's children
-func (t *Tag) Find(conds map[string]string) []*Tag {
+func (t *Tag) Find(conds map[string]string) *TagSets {
 	return t.FindWithFunc(func(tag *Tag) bool {
 		return tag.checkByConditions(conds)
 	})
 }
 
-func (t *Tag) FindWithFunc(f func(*Tag) bool) []*Tag {
-	result := []*Tag{}
+func (t *Tag) FindWithFunc(f func(*Tag) bool) *TagSets {
+	result := &TagSets{}
 	if f(t) {
-		result = append(result, t)
+		result.push(t)
 	}
-	for _, seg := range t.children {
-		if seg.isTag && f(seg.tag) {
-			result = append(result, seg.tag.FindWithFunc(f)...)
-			//result = append(result, seg.tag)
-		}
+    for _, seg := range t.children {
+        if seg.isTag {
+            result.merge(seg.tag.FindWithFunc(f))
+        }
 	}
-	return result
+    return result
+}
+
+func (t *Tag) FindByCssSelector(path string) (ret *TagSets) {
+    ts := &TagSets{
+        tags: []*Tag{t},
+    }
+    return ts.FindByCssSelector(path)
 }
 
 //check if a tag satisfies a set of conditions
@@ -134,7 +140,8 @@ func (t *Tag) Unwrap() []byte {
 		return []byte{}
 	}
 	leng := len(t.children)
-	return t.segment.tree.data[t.children[0].offset:t.children[leng-1].limit]
+    data := t.segment.getContent()
+    return data[t.children[0].offset:t.children[leng-1].limit]
 }
 
 //return the text wrapped in a tag with all metadata of tags removed
@@ -251,7 +258,6 @@ func (t *Tag) writeSegment(position int64, itf interface{}) *segment {
 		tag:    nil,
 		text:   nil,
 		parent: t,
-		tree:   t.segment.tree,
 		offset: 0,
 		limit:  0,
 	}
@@ -275,7 +281,7 @@ func (t *Tag) writeSegment(position int64, itf interface{}) *segment {
 
 //delete a tag. whether to delete its children is optional
 func (t *Tag) Delete(deleteChildren int) error {
-	if t.segment.tree.root == t {
+	if t.segment.parent == nil {
 		return RootUndeletable
 	}
 	switch deleteChildren {
@@ -297,5 +303,5 @@ func (t *Tag) Delete(deleteChildren int) error {
 }
 
 func (t *Tag) addChild(s *segment) {
-	t.children = append(t.children, s)
+    t.children = append(t.children, s)
 }
