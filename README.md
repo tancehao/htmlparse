@@ -32,7 +32,12 @@ go get -u github.com/tancehao/htmlparse
     }
 ```
 
-* (p *Parser)Parse() *Tag
+* NewParser(data []byte) *Parser
+    
+    Initiate a parser using a bytes.
+
+
+* (p *Parser)Parse() (*Tag, error)
 
 	The only one method needed to convert the original bytes to a tree. The root tag was returned. 
 	#### Example:
