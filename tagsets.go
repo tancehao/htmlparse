@@ -3,6 +3,7 @@ package htmlparse
 import (
 	"errors"
 	"strings"
+    "fmt"
 )
 
 var CssSelecotrSeparators = []byte{
@@ -21,17 +22,17 @@ type TagSets struct {
 
 //find a set of tags from the children of tags in a set with some conditions
 func (t *TagSets) Find(conds map[string]string) *TagSets {
-	return t.FindWithFunc(func(tag *Tag) bool {
+	return t.FindByFunc(func(tag *Tag) bool {
 		return tag.checkByConditions(conds)
 	})
 }
 
 //find a set of tags from the children of tags in a set with a function
-func (t *TagSets) FindWithFunc(f func(*Tag) bool) *TagSets {
+func (t *TagSets) FindByFunc(f func(*Tag) bool) *TagSets {
     result := &TagSets{}
     //result := []*Tag{}
 	for _, tag := range t.tags {
-		result.merge(tag.FindWithFunc(f))
+		result.merge(tag.FindByFunc(f))
 	}
 	return result
 }
@@ -50,7 +51,7 @@ func (t *TagSets) FindByName(name string) *TagSets {
 }
 
 func (t *TagSets) FindByClass(class string) *TagSets {
-	return t.FindWithFunc(func(tag *Tag) bool {
+	return t.FindByFunc(func(tag *Tag) bool {
 		return tag.HasClass(class)
 	})
 }
@@ -99,31 +100,31 @@ func (t *TagSets) String() string {
 
 //find a set of tags using a css selector
 func (t *TagSets) FindByCssSelector(path string) (ret *TagSets) {
-	result := []*Tag{}
-	paths := strings.Split(path, ",")
+    ret = &TagSets{}
+    paths := strings.Split(path, ",")
 	for _, p := range paths {
 		subset := t.findByPath(p)
 		if subset == nil {
 			break
 		}
 		for _, tag := range subset.tags {
-			if t.HasTag(tag) {
-				continue
+			if ret.HasTag(tag) {
+                continue
 			}
-			result = append(result, tag)
+            ret.tags = append(ret.tags, tag)
 		}
 	}
-	return &TagSets{tags: result}
+	return
 }
 
 func (t *TagSets) findByPath(path string) *TagSets {
-	var subset []*Tag
+    var subset []*Tag
 	var selector string
-	selector = readSelector(path)
-	if selector == "" {
+    selector = readSelector(path)
+    if selector == "" {
 		return t
 	}
-	/* Note that there should not simply call Find, because most selectors have specified meanings on relationship between tags */
+	/* Note that there should not simply call Find, because most selectors have specified meanings on relationships between tags */
 	switch selector[0] {
 	case '#':
 		for _, tag := range t.tags {
@@ -138,12 +139,12 @@ func (t *TagSets) findByPath(path string) *TagSets {
 			}
 		}
 	case ' ': //all the descendant
-		for _, tag := range t.tags {
-			ss := tag.FindWithFunc(func(tg *Tag) bool {
-				return true
+        for _, tag := range t.tags {
+			ss := tag.FindByFunc(func(tg *Tag) bool {
+				return tg != tag
 			})
 			/* the original tag must be the first element */
-			subset = append(subset, ss.tags[1:]...)
+			subset = append(subset, ss.tags...)
 		}
 	case '>':
 		for _, tag := range t.tags {
@@ -175,7 +176,13 @@ func (t *TagSets) findByPath(path string) *TagSets {
 }
 
 func readSelector(path string) (selector string) {
-	for i := 1; i < len(path); i++ {
+	if len(path) == 0 {
+        return
+    }
+    if path[0] == ' ' {
+        return " "
+    }
+    for i := 1; i < len(path); i++ {
 		for _, s := range CssSelecotrSeparators {
 			if s == path[i] {
 				return path[:i]
@@ -183,4 +190,10 @@ func readSelector(path string) (selector string) {
 		}
 	}
 	return path
+}
+
+func (t *TagSets) Print() {
+    for _, v := range t.tags {
+        fmt.Println(v, "\n")
+    }
 }

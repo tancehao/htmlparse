@@ -30,13 +30,13 @@ func ReadWord(s []byte) []byte {
 }
 
 //read the bytes terminate with or followed by a '<' or '>'
-func ReadSegment(s []byte, offset int64) (int64, []byte, error) {
-    if offset < 0 || offset >= int64(len(s)-1) {
+func ReadSegment(s []byte, offset int) (int, []byte, error) {
+    if offset < 0 || offset >= len(s)-1 {
 		return 0, []byte{}, errors.New("index out of range")
 	}
 	var inDoubleQuote bool = false
 	var inSingleQuote bool = false
-	var length int64 = int64(len(s))
+	var length int = len(s)
 	for i := offset; i < length; i++ {
 		if s[i] == '"' {
 			inDoubleQuote = !inDoubleQuote

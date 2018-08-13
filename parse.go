@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+    //"fmt"
 )
 
 var (
@@ -27,14 +28,15 @@ func (p *Parser) Parse() (*Tag, error) {
     if len(p.data) == 0 {
 		return nil, NilTextError
 	}
-	var n, offset int64
+	var n, offset int
 	var seg []byte
 	var err error
 	var tag *Tag
 	for {
 		n, seg, err = ReadSegment(p.data, offset)
         if err != nil {
-			break
+			//fmt.Println(err)
+            break
 		}
 		if IsOpenTag(seg) {
 			tag, err = p.parseTag(seg)
@@ -54,7 +56,7 @@ func (p *Parser) Parse() (*Tag, error) {
 					parent: nil,
 					data:   p.data,
 				}
-				s.linkToTag(tag, 0, int64(len(p.data)))
+				s.linkToTag(tag, 0, len(p.data))
 				p.root = tag
 			}
 			if tag.NoEnd == false {
@@ -131,7 +133,7 @@ func (p *Parser) parseTag(tag []byte) (*Tag, error) {
 	return newTag, nil
 }
 
-func (p *Parser) pushText(offset, n int64, text []byte) error {
+func (p *Parser) pushText(offset, n int, text []byte) error {
 	txt := make([]byte, len(text))
 	copy(txt, text) //a text can be updated, so we make a copy here
 	t := &Text{
@@ -158,14 +160,14 @@ type segment struct {
 
 	//offset and limit determins the absolute position
 	//of a segment in the document
-	offset int64
-	limit  int64
+	offset int
+	limit  int
 
 	data []byte //the source bytes, empty if it's not the root tag
 }
 
 //link an abstacted segment to a concrete tag which has many useful infos
-func (s *segment) linkToTag(t *Tag, offset, n int64) {
+func (s *segment) linkToTag(t *Tag, offset, n int) {
 	s.isText = false
 	s.isTag = true
 	s.text = nil
@@ -176,7 +178,7 @@ func (s *segment) linkToTag(t *Tag, offset, n int64) {
 }
 
 //link an abstact segment to a concrete text
-func (s *segment) linkToText(t *Text, offset, n int64) {
+func (s *segment) linkToText(t *Text, offset, n int) {
 	s.isText = true
 	s.isTag = false
 	s.text = t
@@ -186,10 +188,10 @@ func (s *segment) linkToText(t *Text, offset, n int64) {
 	t.segment = s
 }
 
-func (seg *segment) index() int64 {
+func (seg *segment) index() int {
 	for i, s := range seg.parent.children {
 		if s == seg {
-			return int64(i)
+			return i
 		}
 	}
 	return -1

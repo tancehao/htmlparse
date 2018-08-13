@@ -17,7 +17,7 @@ func (t *Text) String() string {
 }
 
 //return the index of a text in its parent
-func (t *Text) Index() int64 {
+func (t *Text) Index() int {
 	return t.segment.index()
 }
 

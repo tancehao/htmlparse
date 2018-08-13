@@ -38,32 +38,32 @@ func (t *Tag) FindByName(name string) *TagSets {
 
 //filter a set of tags from a tag and it's children by class
 func (t *Tag) FindByClass(class string) *TagSets {
-	return t.FindWithFunc(func(t *Tag) bool {
+	return t.FindByFunc(func(t *Tag) bool {
 		return t.HasClass(class)
 	})
 }
 
 //filter a subset of tags from a tag's children
 func (t *Tag) Find(conds map[string]string) *TagSets {
-	return t.FindWithFunc(func(tag *Tag) bool {
+	return t.FindByFunc(func(tag *Tag) bool {
 		return tag.checkByConditions(conds)
 	})
 }
 
-func (t *Tag) FindWithFunc(f func(*Tag) bool) *TagSets {
+func (t *Tag) FindByFunc(f func(*Tag) bool) *TagSets {
 	result := &TagSets{}
 	if f(t) {
 		result.push(t)
 	}
     for _, seg := range t.children {
         if seg.isTag {
-            result.merge(seg.tag.FindWithFunc(f))
+            result.merge(seg.tag.FindByFunc(f))
         }
 	}
     return result
 }
 
-func (t *Tag) FindByCssSelector(path string) (ret *TagSets) {
+func (t *Tag) FindByCssSelector(path string) *TagSets {
     ts := &TagSets{
         tags: []*Tag{t},
     }
@@ -140,7 +140,11 @@ func (t *Tag) Unwrap() []byte {
 		return []byte{}
 	}
 	leng := len(t.children)
-    data := t.segment.getContent()
+    root := t
+    for len(root.segment.data) == 0 {
+        root = root.segment.parent
+    }
+    data := root.segment.getContent()
     return data[t.children[0].offset:t.children[leng-1].limit]
 }
 
@@ -182,7 +186,7 @@ func (t *Tag) Next() *Tag {
 }
 
 //return the index of a tag in its parent
-func (t *Tag) Index() int64 {
+func (t *Tag) Index() int {
 	return t.segment.index()
 }
 
@@ -211,7 +215,7 @@ func (t *Tag) Modify() string {
 	return str
 }
 
-func (t *Tag) WriteText(position int64, data []byte) (*Text, error) {
+func (t *Tag) WriteText(position int, data []byte) (*Text, error) {
 	if t.NoEnd {
 		return nil, NoSpaceToWrite
 	}
@@ -224,7 +228,7 @@ func (t *Tag) WriteText(position int64, data []byte) (*Text, error) {
 }
 
 //write a tag to a parent tag
-func (t *Tag) WriteTag(position int64, tagname string) (*Tag, error) {
+func (t *Tag) WriteTag(position int, tagname string) (*Tag, error) {
 	if t.NoEnd {
 		return nil, NoSpaceToWrite
 	}
@@ -242,15 +246,15 @@ func (t *Tag) WriteTag(position int64, tagname string) (*Tag, error) {
 }
 
 //write a segment of type text or tag to a tag
-func (t *Tag) writeSegment(position int64, itf interface{}) *segment {
+func (t *Tag) writeSegment(position int, itf interface{}) *segment {
 	if t.NoEnd {
 		return nil
 	}
 	if len(t.children) == 0 {
 		position = 0
 	}
-	if position >= int64(len(t.children)) && len(t.children) > 0 {
-		position = int64(len(t.children) - 1)
+	if position >= len(t.children) && len(t.children) > 0 {
+		position = len(t.children) - 1
 	}
 	seg := &segment{
 		isTag:  false,
